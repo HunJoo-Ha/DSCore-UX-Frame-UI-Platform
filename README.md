@@ -168,11 +168,13 @@
 ### 서비스 시연
 실제 서비스 사용 과정을 영상으로 확인하실 수 있습니다.
 
-<!-- 데모 영상 삽입 (GitHub Releases에서 호스팅) -->
-<video width="800" height="450" controls>
-  <source src="https://github.com/HunJoo-Ha/DSCore-UX-Frame-UI-Platform/releases/download/v1.0-demo/dscore_ux_search_demo.mp4" type="video/mp4">
-  브라우저가 비디오를 지원하지 않습니다.
-</video>
+<!-- 데모 영상 (스크린샷 + 다운로드 링크) -->
+[![DSCore UX 컴포넌트 검색 서비스 영상](main_dscore_ux_search.PNG)](https://github.com/HunJoo-Ha/DSCore-UX-Frame-UI-Platform/releases/download/v1.0-demo/dscore_ux_search_demo.mp4)
+
+**📹 [데모 영상 다운로드 및 재생](https://github.com/HunJoo-Ha/DSCore-UX-Frame-UI-Platform/releases/download/v1.0-demo/dscore_ux_search_demo.mp4)**
+
+*스크린샷을 클릭하거나 위 링크를 클릭하면 데모 영상을 확인할 수 있습니다.*
+
 
 ---
 
