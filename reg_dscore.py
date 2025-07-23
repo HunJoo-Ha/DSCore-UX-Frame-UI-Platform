@@ -4,10 +4,26 @@ from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from dotenv import load_dotenv
 
-load_dotenv()
+# 로컬 개발환경에서만 .env 파일 로드
+if os.path.exists('.env'):
+    load_dotenv()
 
 class RAGSystem:
     def __init__(self):
+        # 환경 변수 확인
+        required_vars = [
+            "AZURE_OPENAI_ENDPOINT",
+            "AZURE_OPENAI_API_KEY", 
+            "AZURE_OPENAI_DEPLOYMENT_NAME",
+            "AZURE_SEARCH_ENDPOINT",
+            "AZURE_SEARCH_INDEX_NAME",
+            "AZURE_SEARCH_API_KEY"
+        ]
+        
+        missing_vars = [var for var in required_vars if not os.getenv(var)]
+        if missing_vars:
+            raise Exception(f"필수 환경 변수가 설정되지 않았습니다: {', '.join(missing_vars)}")
+        
         # Azure OpenAI 클라이언트
         self.openai_client = AzureOpenAI(
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
@@ -52,6 +68,10 @@ class RAGSystem:
                 available_fields = list(result.keys())
                 break
             
+            if not available_fields:
+                print("인덱스에 문서가 없습니다.")
+                return []
+            
             print(f"사용 가능한 필드: {available_fields}")
             
             # 텍스트 콘텐츠가 들어있을 가능성이 높은 필드들
@@ -69,12 +89,24 @@ class RAGSystem:
                     break
             
             if not actual_content_field:
+                # 첫 번째 문자열 필드 사용
+                for field in available_fields:
+                    sample_value = None
+                    for result in sample_results:
+                        sample_value = result.get(field)
+                        break
+                    
+                    if isinstance(sample_value, str) and len(sample_value) > 10:
+                        actual_content_field = field
+                        break
+            
+            if not actual_content_field:
                 print("콘텐츠 필드를 찾을 수 없습니다. 사용 가능한 필드:", available_fields)
                 return []
             
             print(f"사용할 콘텐츠 필드: {actual_content_field}")
             
-            # 검색 실행 (디버깅 정보 추가)
+            # 검색 실행
             results = self.search_client.search(
                 search_text=query,
                 top=top_k,
@@ -86,7 +118,6 @@ class RAGSystem:
             for result in results:
                 result_count += 1
                 content = result.get(actual_content_field, "")
-                print(f"검색 결과 {result_count}: {str(content)[:200]}...")
                 
                 if content and len(str(content).strip()) > 0:
                     documents.append(str(content))
@@ -106,7 +137,6 @@ class RAGSystem:
                     content = result.get(actual_content_field, "")
                     if content and len(str(content).strip()) > 0:
                         documents.append(str(content))
-                        print(f"샘플 문서: {str(content)[:200]}...")
             
             return documents
             
@@ -135,17 +165,20 @@ class RAGSystem:
         답변:
         """
         
-        response = self.openai_client.chat.completions.create(
-            model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-            messages=[
-                {"role": "system", "content": "당신은 UI 컴포넌트 문서를 바탕으로 개발자들에게 도움이 되는 답변을 제공하는 AI 어시스턴트입니다. 코드 예시와 실용적인 사용법을 포함하여 답변하세요."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3,
-            max_tokens=1500
-        )
-        
-        return response.choices[0].message.content
+        try:
+            response = self.openai_client.chat.completions.create(
+                model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+                messages=[
+                    {"role": "system", "content": "당신은 UI 컴포넌트 문서를 바탕으로 개발자들에게 도움이 되는 답변을 제공하는 AI 어시스턴트입니다. 코드 예시와 실용적인 사용법을 포함하여 답변하세요."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=1500
+            )
+            
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"답변 생성 중 오류가 발생했습니다: {e}"
     
     def ask(self, query):
         """RAG 파이프라인 실행"""
