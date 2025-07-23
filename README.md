@@ -189,7 +189,7 @@
 ---
 
 
-🔗 **서비스 URL**: https://webapp-dscore-ux-search-h4chjd7h3f3g8ft.swedencentral-01.azurewebsites.net
+🔗 **서비스 URL**: https://webapp-dscore-ux-search-h4chgjd7h3f3g8ft.swedencentral-01.azurewebsites.net/
 
 **최종 업데이트**: 2025년 7월 24일
 
